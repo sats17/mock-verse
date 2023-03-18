@@ -10,10 +10,10 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.github.sats17</groupId>
-	<artifactId>custom-mock-server</artifactId>
+	<artifactId>mokku-api-server</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>custom-mock-serverr</name>
-	<description>Simple mock server project</description>
+	<name>mokku-api-server</name>
+	<description>Mock server provides response in JSON</description>
 	<properties>
 		<java.version>8</java.version>
 	</properties>
