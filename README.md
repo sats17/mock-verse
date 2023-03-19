@@ -1,2 +1,2 @@
-# Mokku API Server
+# Mangekyo API Mock Server
 
