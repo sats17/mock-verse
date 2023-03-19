@@ -10,9 +10,9 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.github.sats17</groupId>
-	<artifactId>mokku-api-server</artifactId>
+	<artifactId>mangekyo-mock-server</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>mokku-api-server</name>
+	<name>mangekyo-api-server</name>
 	<description>Mock server provides response in JSON</description>
 	<properties>
 		<java.version>8</java.version>
