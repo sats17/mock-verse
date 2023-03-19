@@ -96,9 +96,14 @@ public class MockController {
 		ObjectMapper objectMapper = new ObjectMapper();
 
 		try {
+			File directory = new File("mock-responses");
+		    if (!directory.exists()) {
+		        directory.mkdir();
+		    }
 			objectMapper.writeValue(new File("mock-responses/" + hashCode.toString() + ".json"), body);
 		} catch (IOException e) {
 			e.printStackTrace();
+			return "Something went wrong while writing response to file";
 		}
 		return "Inserted data to file";
 	}
