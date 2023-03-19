@@ -31,5 +31,11 @@ public class Utility {
 		}
 		return false;
 	}
+	
+	public static Integer generateHashCode(String apiMethod, String apiPath) {
+		String key = apiMethod.toLowerCase()+"_"+apiPath.toLowerCase();
+		int hashCode = key.hashCode();
+		return Integer.valueOf(hashCode);
+	}
 
 }
