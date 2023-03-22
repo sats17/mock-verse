@@ -52,8 +52,9 @@ public class Utility {
 			for (int i = 0; i < value.length; i++) {
 				queryValueBuilder.append(value[i]);
 			}
-			sortHelperMap.put(key.toLowerCase(), queryValueBuilder.toString().toLowerCase());
+			sortHelperMap.put(key.toLowerCase(), queryValueBuilder.toString().toLowerCase().trim());
 		});
+		System.out.println(sortHelperMap.toString());
 		List<String> sortedKeys = new ArrayList<>(sortHelperMap.keySet());
 		Collections.sort(sortedKeys);
 
@@ -61,6 +62,8 @@ public class Utility {
 		StringBuilder queryParamBuilder = new StringBuilder();
 		IntStream.range(0, sortedKeys.size()).forEach(i -> {
 			String key = sortedKeys.get(i);
+			System.out.println("Key "+key);
+			System.out.println("Value = "+sortHelperMap.get(key).toLowerCase());
 			queryParamBuilder.append(key).append("=").append(sortHelperMap.get(key).toLowerCase());
 			if (i < sortedKeys.size() - 1) {
 				queryParamBuilder.append("&");
@@ -71,7 +74,7 @@ public class Utility {
 		return Integer.valueOf(queryParamBuilder.toString().hashCode());
 	}
 
-	// Uses in insert API
+	// Uses for insert API
 	public static Integer generateQueryParamHashString(String queryParams) {
 		if (queryParams.startsWith("?")) {
 			queryParams = queryParams.substring(1);
@@ -87,7 +90,10 @@ public class Utility {
 		for (String pair : pairs) {
 			String[] keyValue = pair.split("=");
 			String key = keyValue[0].toLowerCase();
-			String value = keyValue[1].toLowerCase();
+			String value = "";
+			if(keyValue.length == 2) {
+				value = keyValue[1].toLowerCase().trim();
+			}
 
 			// Add the key-value pair to the HashMap
 			sortHelperMap.put(key, value);
