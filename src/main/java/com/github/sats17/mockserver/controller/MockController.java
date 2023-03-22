@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -71,35 +72,37 @@ public class MockController {
 
 	@PostMapping("/api/map/insert")
 	public Object insertDataToMap(@RequestParam String apiPath, @RequestParam String apiMethod,
-			@RequestBody String body) {
+			@RequestParam Optional<String> queryParams, @RequestBody String body) {
 		if (!Utility.isValidPath(apiPath)) {
 			return ResponseEntity.ok("Query parameter apiPath should starts with / as it represent API Path.");
 		}
 		if (!Utility.isValidAPIMethod(apiMethod)) {
 			return ResponseEntity.ok("Query parameter apiMethod is not valid.");
 		}
-		Integer hashCode = Utility.generateHashCode(apiMethod, apiPath);
+		String structuredQueryParams = Utility.generateQueryParamString(queryParams.orElse(""));
+		Integer hashCode = Utility.generateHashCode(apiMethod, apiPath, structuredQueryParams);
 		map.put(hashCode, body);
 		return map.get(hashCode);
 	}
 
 	@PostMapping("/api/file/insert")
 	public Object insertDataToFile(@RequestParam String apiPath, @RequestParam String apiMethod,
-			@RequestBody String body) {
+			@RequestParam Optional<String> queryParams, @RequestBody String body) {
 		if (!Utility.isValidPath(apiPath)) {
 			return ResponseEntity.ok("Query parameter apiPath should starts with / as it represent API Path.");
 		}
 		if (!Utility.isValidAPIMethod(apiMethod)) {
 			return ResponseEntity.ok("Query parameter apiMethod is not valid.");
 		}
-		Integer hashCode = Utility.generateHashCode(apiMethod, apiPath);
+		String structuredQueryParams = Utility.generateQueryParamString(queryParams.orElse(""));
+		Integer hashCode = Utility.generateHashCode(apiMethod, apiPath, structuredQueryParams);
 		ObjectMapper objectMapper = new ObjectMapper();
 
 		try {
 			File directory = new File("mock-responses");
-		    if (!directory.exists()) {
-		        directory.mkdir();
-		    }
+			if (!directory.exists()) {
+				directory.mkdir();
+			}
 			objectMapper.writeValue(new File("mock-responses/" + hashCode.toString() + ".json"), body);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -111,11 +114,14 @@ public class MockController {
 	@RequestMapping(value = "/**", produces = "application/json")
 	public Object getURLValue(HttpServletRequest request) {
 		String requestPath = request.getRequestURI();
+		System.out.println("Request Path " + requestPath);
+
+		String structuredQueryParams = Utility.generateQueryParamString(request.getParameterMap());
 		String requestMethod = request.getMethod();
 		System.out.println("Path is " + requestPath);
 		System.out.println("Method is " + requestMethod);
 
-		Integer key = Utility.generateHashCode(requestMethod, requestPath);
+		Integer key = Utility.generateHashCode(requestMethod, requestPath, structuredQueryParams);
 
 //		Object result = fetchDataFromDB(key);
 //		if (result != null) {
@@ -138,7 +144,8 @@ public class MockController {
 			return result;
 		}
 		System.out.println("Data for key " + key + " not present anywhere inside mockserver");
-		return "Data for requestPath " + requestPath + " and requestMethod " + requestMethod + " not present anywhere inside mockserver";
+		return "Data for requestPath " + requestPath + " and requestMethod " + requestMethod
+				+ " not present anywhere inside mockserver";
 
 	}
 
