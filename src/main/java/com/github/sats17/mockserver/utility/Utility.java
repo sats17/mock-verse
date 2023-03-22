@@ -35,26 +35,39 @@ public class Utility {
 		return false;
 	}
 
-	public static Integer generateHashCode(String apiMethod, String apiPath) {
-		String key = apiMethod.toLowerCase() + "_" + apiPath.toLowerCase();
+	public static Integer generateHashCode(String... args) {
+		// Skip any string with length 0 or null
+	    args = Arrays.stream(args)
+	            .filter(s -> s != null && s.length() > 0)
+	            .map(s -> s.toLowerCase())
+	            .toArray(String[]::new);
+	    
+	    if (args.length == 0) {
+	    	System.out.println("Values passed to generate hash are either empty or null");
+	        throw new IllegalArgumentException("Internal server error.");
+	    }
+	    
+		String key = String.join("_", args);
 		System.out.println("Storage key = " + key);
 		int hashCode = key.hashCode();
 		return Integer.valueOf(hashCode);
 	}
 
-	public static Integer generateQueryParamHashString(Map<String, String[]> servletQueryParams) {
+	public static String generateQueryParamString(Map<String, String[]> servletQueryParams) {
+		if(servletQueryParams.isEmpty()) {
+			System.out.println("No query params passed, hence structured query params will be empty.");
+			return "";
+		}
 		Map<String, String> sortHelperMap = new HashMap<>();
 
 		// Sort query parameters
 		servletQueryParams.forEach((key, value) -> {
 			StringBuilder queryValueBuilder = new StringBuilder();
-			System.out.println("Query Parameter Key = " + key);
 			for (int i = 0; i < value.length; i++) {
 				queryValueBuilder.append(value[i]);
 			}
 			sortHelperMap.put(key.toLowerCase(), queryValueBuilder.toString().toLowerCase().trim());
 		});
-		System.out.println(sortHelperMap.toString());
 		List<String> sortedKeys = new ArrayList<>(sortHelperMap.keySet());
 		Collections.sort(sortedKeys);
 
@@ -62,8 +75,6 @@ public class Utility {
 		StringBuilder queryParamBuilder = new StringBuilder();
 		IntStream.range(0, sortedKeys.size()).forEach(i -> {
 			String key = sortedKeys.get(i);
-			System.out.println("Key "+key);
-			System.out.println("Value = "+sortHelperMap.get(key).toLowerCase());
 			queryParamBuilder.append(key).append("=").append(sortHelperMap.get(key).toLowerCase());
 			if (i < sortedKeys.size() - 1) {
 				queryParamBuilder.append("&");
@@ -71,13 +82,18 @@ public class Utility {
 			System.out.println(queryParamBuilder.toString());
 		});
 		System.out.println("Key generated to store query params => " + queryParamBuilder.toString());
-		return Integer.valueOf(queryParamBuilder.toString().hashCode());
+		return queryParamBuilder.toString();
 	}
 
 	// Uses for insert API
-	public static Integer generateQueryParamHashString(String queryParams) {
+	public static String generateQueryParamString(String queryParams) {
 		if (queryParams.startsWith("?")) {
 			queryParams = queryParams.substring(1);
+		}
+		
+		if (queryParams.isEmpty()) {
+			System.out.println("No query params passed, hence structured query params will be empty.");
+			return "";
 		}
 
 		// Split the input string by "&" to get individual key-value pairs
@@ -115,7 +131,7 @@ public class Utility {
 			System.out.println(queryParamBuilder.toString());
 		});
 		System.out.println("Key generated to store query params => " + queryParamBuilder.toString());
-		return Integer.valueOf(queryParamBuilder.toString().hashCode());
+		return queryParamBuilder.toString();
 
 	}
 }
