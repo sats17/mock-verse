@@ -42,28 +42,74 @@ public class Utility {
 		return Integer.valueOf(hashCode);
 	}
 
-	public static String generateQueryParamString(Map<String, String[]> servletQueryParams) {
-		Map<String, String> sortedHelperMap = new HashMap<>();
+	public static Integer generateQueryParamHashString(Map<String, String[]> servletQueryParams) {
+		Map<String, String> sortHelperMap = new HashMap<>();
+
+		// Sort query parameters
 		servletQueryParams.forEach((key, value) -> {
-			String finalValue = "";
+			StringBuilder queryValueBuilder = new StringBuilder();
 			System.out.println("Query Parameter Key = " + key);
 			for (int i = 0; i < value.length; i++) {
-				System.out.println("Query Parameter value " + value[i]);
-				finalValue = finalValue + value[i];
+				queryValueBuilder.append(value[i]);
 			}
-			sortedHelperMap.put(key, finalValue);
+			sortHelperMap.put(key.toLowerCase(), queryValueBuilder.toString().toLowerCase());
 		});
-		System.out.println(sortedHelperMap.toString());
-		List<String> sortedKeys = new ArrayList<>(sortedHelperMap.keySet());
+		List<String> sortedKeys = new ArrayList<>(sortHelperMap.keySet());
 		Collections.sort(sortedKeys);
-		StringBuilder sb = new StringBuilder();
+
+		// Generate query parameters string to support storage format
+		StringBuilder queryParamBuilder = new StringBuilder();
 		IntStream.range(0, sortedKeys.size()).forEach(i -> {
 			String key = sortedKeys.get(i);
-			sb.append(key).append("=").append(sortedHelperMap.get(key));
+			queryParamBuilder.append(key).append("=").append(sortHelperMap.get(key).toLowerCase());
 			if (i < sortedKeys.size() - 1) {
-				sb.append("&");
+				queryParamBuilder.append("&");
 			}
+			System.out.println(queryParamBuilder.toString());
 		});
-		return sb.toString();
+		System.out.println("Key generated to store query params => " + queryParamBuilder.toString());
+		return Integer.valueOf(queryParamBuilder.toString().hashCode());
+	}
+
+	// Uses in insert API
+	public static Integer generateQueryParamHashString(String queryParams) {
+		if (queryParams.startsWith("?")) {
+			queryParams = queryParams.substring(1);
+		}
+
+		// Split the input string by "&" to get individual key-value pairs
+		String[] pairs = queryParams.split("&");
+
+		// Create a new HashMap to store the key-value pairs
+		HashMap<String, String> sortHelperMap = new HashMap<String, String>();
+
+		// Iterate over the key-value pairs and split them by "="
+		for (String pair : pairs) {
+			String[] keyValue = pair.split("=");
+			String key = keyValue[0].toLowerCase();
+			String value = keyValue[1].toLowerCase();
+
+			// Add the key-value pair to the HashMap
+			sortHelperMap.put(key, value);
+		}
+
+		// Print the HashMap to verify the key-value pairs were added correctly
+		System.out.println(sortHelperMap);
+		List<String> sortedKeys = new ArrayList<>(sortHelperMap.keySet());
+		Collections.sort(sortedKeys);
+
+		// Generate query parameters string to support storage format
+		StringBuilder queryParamBuilder = new StringBuilder();
+		IntStream.range(0, sortedKeys.size()).forEach(i -> {
+			String key = sortedKeys.get(i);
+			queryParamBuilder.append(key).append("=").append(sortHelperMap.get(key).toLowerCase());
+			if (i < sortedKeys.size() - 1) {
+				queryParamBuilder.append("&");
+			}
+			System.out.println(queryParamBuilder.toString());
+		});
+		System.out.println("Key generated to store query params => " + queryParamBuilder.toString());
+		return Integer.valueOf(queryParamBuilder.toString().hashCode());
+
 	}
 }
