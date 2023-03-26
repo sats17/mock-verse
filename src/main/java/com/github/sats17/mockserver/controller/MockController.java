@@ -74,9 +74,9 @@ public class MockController {
 //		return resp.first().get("data");
 //	}
 
-	@PostMapping(path="/api/map/insert", produces= {MediaType.ALL_VALUE})
+	@PostMapping(path="/api/map/insert")
 	public ResponseEntity<Object> insertDataToMap(@RequestParam String apiPath, @RequestParam String apiMethod,
-			@RequestParam Optional<String> apiQueryParams, @RequestBody String body, HttpServletRequest request) {
+			@RequestParam Optional<String> apiQueryParams, @RequestParam Optional<String> apiHeaders, @RequestBody String body, HttpServletRequest request) throws IOException {
 		if (!Utility.isValidPath(apiPath)) {
 			return ResponseEntity.ok("Query parameter apiPath should starts with / as it represent API Path.");
 		}
@@ -84,23 +84,16 @@ public class MockController {
 			return ResponseEntity.ok("Query parameter apiMethod is not valid.");
 		}
 		String structuredQueryParams = Utility.generateQueryParamString(apiQueryParams.orElse(""));
-	    // Get the headers from the request
-	    HttpHeaders headers = new HttpHeaders();
-	    Enumeration<String> headerNames = request.getHeaderNames();
-	    while (headerNames.hasMoreElements()) {
-	        String headerName = headerNames.nextElement();
-	        String headerValue = request.getHeader(headerName);
-	        headers.add(headerName, headerValue);
-	    }
-	    
-	    System.out.println(headers.toString());
 		
+		HashMap<String, String> headers = Utility.generateAPIHeaders(apiHeaders.orElse(""));
+		MediaType contentType = Utility.resolveContentType(headers.get("content-type"));
+		//Object mappedBody = Utility.mapStringBodyToDataType(body, contentType);
 		Integer hashCode = Utility.generateHashCode(apiMethod, apiPath, structuredQueryParams);
-		Storage storage = new Storage(apiPath, structuredQueryParams, body);
+		Storage storage = new Storage(apiPath, structuredQueryParams, contentType ,body);
 		map.put(hashCode, storage);
-		System.out.println((map.get(hashCode)).getBody());
-		return new ResponseEntity<Object>(map.get(hashCode).getBody(), null, 200);
-		//return ((Storage) map.get(hashCode)).getBody();
+		System.out.println("Body "+(map.get(hashCode)).getBody());
+		return ResponseEntity.ok(map.get(hashCode).getBody());
+		//return new ResponseEntity<Object>(Utility.mapStringBodyToDataType(map.get(hashCode).getBody(), contentType), null, 200);
 	}
 
 	@PostMapping("/api/file/insert")

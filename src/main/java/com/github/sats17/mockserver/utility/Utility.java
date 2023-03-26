@@ -10,7 +10,12 @@ import java.util.Map;
 import java.util.stream.IntStream;
 
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
 import org.springframework.util.FileCopyUtils;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 public class Utility {
 
@@ -37,16 +42,14 @@ public class Utility {
 
 	public static Integer generateHashCode(String... args) {
 		// Skip any string with length 0 or null
-	    args = Arrays.stream(args)
-	            .filter(s -> s != null && s.length() > 0)
-	            .map(s -> s.toLowerCase())
-	            .toArray(String[]::new);
-	    
-	    if (args.length == 0) {
-	    	System.out.println("Values passed to generate hash are either empty or null");
-	        throw new IllegalArgumentException("Internal server error.");
-	    }
-	    
+		args = Arrays.stream(args).filter(s -> s != null && s.length() > 0).map(s -> s.toLowerCase())
+				.toArray(String[]::new);
+
+		if (args.length == 0) {
+			System.out.println("Values passed to generate hash are either empty or null");
+			throw new IllegalArgumentException("Internal server error.");
+		}
+
 		String key = String.join("_", args);
 		System.out.println("Storage key = " + key);
 		int hashCode = key.hashCode();
@@ -54,7 +57,7 @@ public class Utility {
 	}
 
 	public static String generateQueryParamString(Map<String, String[]> servletQueryParams) {
-		if(servletQueryParams.isEmpty()) {
+		if (servletQueryParams.isEmpty()) {
 			System.out.println("No query params passed, hence structured query params will be empty.");
 			return "";
 		}
@@ -90,14 +93,14 @@ public class Utility {
 		if (queryParams.startsWith("?")) {
 			queryParams = queryParams.substring(1);
 		}
-		
+
 		if (queryParams.isEmpty()) {
 			System.out.println("No query params passed, hence structured query params will be empty.");
 			return "";
 		}
 
-		// Split the input string by "&" to get individual key-value pairs
-		String[] pairs = queryParams.split(",");
+		// Split the input string by ";" to get individual key-value pairs
+		String[] pairs = queryParams.split(";");
 
 		// Create a new HashMap to store the key-value pairs
 		HashMap<String, String> sortHelperMap = new HashMap<String, String>();
@@ -107,7 +110,7 @@ public class Utility {
 			String[] keyValue = pair.split("=");
 			String key = keyValue[0].toLowerCase();
 			String value = "";
-			if(keyValue.length == 2) {
+			if (keyValue.length == 2) {
 				value = keyValue[1].toLowerCase().trim();
 			}
 
@@ -133,5 +136,61 @@ public class Utility {
 		System.out.println("Key generated to store query params => " + queryParamBuilder.toString());
 		return queryParamBuilder.toString();
 
+	}
+
+	// Uses for insert API
+	public static HashMap<String, String> generateAPIHeaders(String headers) {
+		HashMap<String, String> headersMap = new HashMap<String, String>();
+		if (headers.isEmpty()) {
+			System.out.println("No Headers Param passed, hence structured headers params will be empty.");
+			return headersMap;
+		}
+
+		// Split the input string by ";" to get individual key-value pairs
+		String[] pairs = headers.split(";");
+
+		// Create a new HashMap to store the key-value pairs
+
+		// Iterate over the key-value pairs and split them by "="
+		for (String pair : pairs) {
+			String[] keyValue = pair.split("=");
+			String key = keyValue[0].toLowerCase();
+			String value = "";
+			if (keyValue.length == 2) {
+				value = keyValue[1].toLowerCase().trim();
+			}
+
+			// Add the key-value pair to the HashMap
+			headersMap.put(key, value);
+		}
+
+		return headersMap;
+	}
+
+	public static Object mapStringBodyToDataType(Object body, MediaType contentType) throws IOException {
+		System.out.println("Content Type to map response body "+contentType.toString());
+		if (contentType.isCompatibleWith(MediaType.APPLICATION_JSON)) {
+			ObjectMapper mapper = new ObjectMapper();
+			try {
+				Object object = mapper.readTree((String) body);
+				return object;
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw e;
+			}
+		} else {
+			return body;
+		}
+	}
+
+	public static MediaType resolveContentType(String contentType) {
+		if (contentType == null || contentType.trim().isEmpty()) {
+			return MediaType.APPLICATION_JSON;
+		}
+		try {
+			return MediaType.valueOf(contentType);
+		} catch (InvalidMediaTypeException e) {
+			return MediaType.APPLICATION_JSON;
+		}
 	}
 }
