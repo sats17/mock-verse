@@ -51,6 +51,10 @@ public class Storage {
 		this.contentType = contentType;
 	}
 
-
+	@Override
+	public String toString() {
+		return "Storage [apiPath=" + apiPath + ", queryParameters=" + queryParameters + ", contentType=" + contentType
+				+ ", body=" + body + "]";
+	}
 
 }

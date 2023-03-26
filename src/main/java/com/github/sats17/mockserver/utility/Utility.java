@@ -51,7 +51,7 @@ public class Utility {
 		}
 
 		String key = String.join("_", args);
-		System.out.println("Storage key = " + key);
+		System.out.println("Storage hash key = " + key);
 		int hashCode = key.hashCode();
 		return Integer.valueOf(hashCode);
 	}
@@ -119,7 +119,6 @@ public class Utility {
 		}
 
 		// Print the HashMap to verify the key-value pairs were added correctly
-		System.out.println(sortHelperMap);
 		List<String> sortedKeys = new ArrayList<>(sortHelperMap.keySet());
 		Collections.sort(sortedKeys);
 
@@ -142,11 +141,10 @@ public class Utility {
 	public static HashMap<String, String> generateAPIHeaders(String headers) {
 		HashMap<String, String> headersMap = new HashMap<String, String>();
 		if (headers.isEmpty()) {
-			System.out.println("No Headers Param passed, hence structured headers params will be empty.");
+			System.out.println("No Headers Param passed.");
 			return headersMap;
 		}
 
-		// Split the input string by ";" to get individual key-value pairs
 		String[] pairs = headers.split(";");
 
 		// Create a new HashMap to store the key-value pairs
@@ -159,8 +157,6 @@ public class Utility {
 			if (keyValue.length == 2) {
 				value = keyValue[1].toLowerCase().trim();
 			}
-
-			// Add the key-value pair to the HashMap
 			headersMap.put(key, value);
 		}
 

@@ -58,9 +58,11 @@ public class MockController {
 		
 		Integer hashCode = Utility.generateHashCode(apiMethod, apiPath, structuredQueryParams);
 		Storage storage = new Storage(apiPath, structuredQueryParams, contentType.toString() ,body);
+		System.out.println("Storage -> "+storage.toString());
 		map.put(hashCode, storage);
 		HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.add("content-type", contentType.toString());
+		
 		return new ResponseEntity<Object>(map.get(hashCode).getBody(), responseHeaders, 200);
 	}
 
@@ -83,12 +85,12 @@ public class MockController {
 		String storageJson;
 		try {
 			storageJson = objectMapper.writeValueAsString(storage);
+			System.out.println("Storage -> "+storageJson);
 		} catch (JsonProcessingException e1) {
 			System.out.println("Error occured while converting Storage Class to JSON String.\n");
 			e1.printStackTrace();
 			return "Something went wrong, please check logs";
 		}
-		System.out.println(storageJson);
 		ObjectMapper objectMapper = new ObjectMapper();
 
 		try {
@@ -128,7 +130,7 @@ public class MockController {
 		result = fetchDataFromFile(key);
 		if (result != null) {
 			System.out.println(result);
-			System.out.println("Data returned from FIle");
+			System.out.println("Data returned from File");
 			HttpHeaders responseHeaders = new HttpHeaders();
 			responseHeaders.add("content-type", result.getContentType());
 			return new ResponseEntity<Object>(result.getBody(), responseHeaders, 200);
