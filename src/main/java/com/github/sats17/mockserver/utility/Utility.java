@@ -97,7 +97,7 @@ public class Utility {
 		}
 
 		// Split the input string by "&" to get individual key-value pairs
-		String[] pairs = queryParams.split("&");
+		String[] pairs = queryParams.split(",");
 
 		// Create a new HashMap to store the key-value pairs
 		HashMap<String, String> sortHelperMap = new HashMap<String, String>();

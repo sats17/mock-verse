@@ -5,7 +5,14 @@ public class Storage {
 	private String apiPath;
 	private String queryParameters;
 	private Object body;
+
 	
+	public Storage(String apiPath, String queryParameters, Object body) {
+		super();
+		this.apiPath = apiPath;
+		this.queryParameters = queryParameters;
+		this.body = body;
+	}
 	public String getApiPath() {
 		return apiPath;
 	}

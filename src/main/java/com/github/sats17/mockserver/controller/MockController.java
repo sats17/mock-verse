@@ -3,6 +3,7 @@ package com.github.sats17.mockserver.controller;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -12,6 +13,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.sats17.mockserver.model.Storage;
 import com.github.sats17.mockserver.utility.Utility;
 
 @RestController
@@ -32,7 +36,7 @@ public class MockController {
 //	@Autowired
 //	public MongoConfiguration mongoConfig;
 
-	public static Map<Integer, Object> map = new HashMap<>();
+	public static Map<Integer, Storage> map = new HashMap<>();
 
 	public static ObjectMapper objectMapper = new ObjectMapper();
 
@@ -70,19 +74,33 @@ public class MockController {
 //		return resp.first().get("data");
 //	}
 
-	@PostMapping("/api/map/insert")
-	public Object insertDataToMap(@RequestParam String apiPath, @RequestParam String apiMethod,
-			@RequestParam Optional<String> queryParams, @RequestBody String body) {
+	@PostMapping(path="/api/map/insert", produces= {MediaType.ALL_VALUE})
+	public ResponseEntity<Object> insertDataToMap(@RequestParam String apiPath, @RequestParam String apiMethod,
+			@RequestParam Optional<String> apiQueryParams, @RequestBody String body, HttpServletRequest request) {
 		if (!Utility.isValidPath(apiPath)) {
 			return ResponseEntity.ok("Query parameter apiPath should starts with / as it represent API Path.");
 		}
 		if (!Utility.isValidAPIMethod(apiMethod)) {
 			return ResponseEntity.ok("Query parameter apiMethod is not valid.");
 		}
-		String structuredQueryParams = Utility.generateQueryParamString(queryParams.orElse(""));
+		String structuredQueryParams = Utility.generateQueryParamString(apiQueryParams.orElse(""));
+	    // Get the headers from the request
+	    HttpHeaders headers = new HttpHeaders();
+	    Enumeration<String> headerNames = request.getHeaderNames();
+	    while (headerNames.hasMoreElements()) {
+	        String headerName = headerNames.nextElement();
+	        String headerValue = request.getHeader(headerName);
+	        headers.add(headerName, headerValue);
+	    }
+	    
+	    System.out.println(headers.toString());
+		
 		Integer hashCode = Utility.generateHashCode(apiMethod, apiPath, structuredQueryParams);
-		map.put(hashCode, body);
-		return map.get(hashCode);
+		Storage storage = new Storage(apiPath, structuredQueryParams, body);
+		map.put(hashCode, storage);
+		System.out.println((map.get(hashCode)).getBody());
+		return new ResponseEntity<Object>(map.get(hashCode).getBody(), null, 200);
+		//return ((Storage) map.get(hashCode)).getBody();
 	}
 
 	@PostMapping("/api/file/insert")
