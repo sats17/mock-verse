@@ -1,7 +1,5 @@
 package com.github.sats17.mockserver.model;
 
-import java.util.Map;
-
 public class Storage {
 
 	private String apiPath;
@@ -14,10 +12,10 @@ public class Storage {
 	public void setApiPath(String apiPath) {
 		this.apiPath = apiPath;
 	}
-	public Map<String, String> getQueryParameters() {
+	public String getQueryParameters() {
 		return queryParameters;
 	}
-	public void setQueryParameters(Map<String, String> queryParameters) {
+	public void setQueryParameters(String queryParameters) {
 		this.queryParameters = queryParameters;
 	}
 	public Object getBody() {
