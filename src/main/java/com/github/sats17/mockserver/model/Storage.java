@@ -1,16 +1,17 @@
 package com.github.sats17.mockserver.model;
 
-import org.springframework.http.InvalidMediaTypeException;
-import org.springframework.http.MediaType;
-
 public class Storage {
 
 	private String apiPath;
 	private String queryParameters;
+	private String contentType;
 	private Object body;
-	private MediaType contentType;
 
-	public Storage(String apiPath, String queryParameters, MediaType contentType, Object body) {
+	public Storage() {
+		super();
+	}
+
+	public Storage(String apiPath, String queryParameters, String contentType, Object body) {
 		super();
 		this.apiPath = apiPath;
 		this.queryParameters = queryParameters;
@@ -42,11 +43,11 @@ public class Storage {
 		this.body = body;
 	}
 
-	public MediaType getContentType() {
+	public String getContentType() {
 		return contentType;
 	}
 
-	public void setContentType(MediaType contentType) {
+	public void setContentType(String contentType) {
 		this.contentType = contentType;
 	}
 
