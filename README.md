@@ -16,10 +16,11 @@ a) apiPath = Your mock API Path, it can include your query parameters or without
 
 
 Future scope -
-1) Query parameter based mock support
+1) Query parameter based mock support -> Done
 2) Headers based mock support
 3) Mock response HTTP status support
 4) Server port support from command line
+5) Pick content type 
 
 
 Note: This is just a tool which helps developer while developing application, it will not support any backward compatibility.
