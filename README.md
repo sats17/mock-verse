@@ -1,6 +1,6 @@
 # Mock Server
 
-Mock server provides response based on your feeds
+Mock server provides mock behaviour based on your mock inputs.
 
 ### How to start server
 1) Clone repository
