@@ -6,13 +6,11 @@
 3) Run this command -> "sh run_me.sh"
 
 ### How to add mock behaviour to server
-1) In memory storage -> This will store your mock behaviour inside in memory server storage. Every restart of server will clear the storage, hence you need to add mock behaviour again.
-API Path = http://localhost:80/api/map/insert
-Query Parameters - 
-a) apiPath = Your mock API Path, it can include your query parameters or without query parameters.
+1) In memory storage -> This will store your mock behaviour inside in memory server storage. Every restart of server will clear the storage, hence you need to add mock behaviour again. \
+* API Path = http://localhost:80/api/map/insert
 
-3) File based storage -> This will create files of your mock behaviours 
-
+2) File based storage -> This will create files of your mock behaviours inside /{project-path}/mock-responses folder.
+* API Path = http://localhost:80/api/file/insert
 
 
 Future scope -
