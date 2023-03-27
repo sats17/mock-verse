@@ -1,4 +1,4 @@
-# Mock Server
+# Mock Verse
 
 Mock server provides mock behaviour based on your mock inputs.
 
