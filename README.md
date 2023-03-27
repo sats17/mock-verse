@@ -1,4 +1,6 @@
-# Mangekyo API Mock Server
+# Mock Server
+
+Mock server provides response based on your feeds
 
 ### How to start server
 1) Clone repository
