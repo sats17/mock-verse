@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set the name of your Spring Boot project's JAR file
-JAR_NAME="mangekyo-mock-server-0.0.1.jar"
+JAR_NAME="mock-verse-2.0.0.jar"
 
 # Clean up any old JAR files
 rm -f $JAR_NAME
