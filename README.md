@@ -45,3 +45,17 @@ The mock response body in any supported format.
 Example usage:
 - curl -X POST "http://localhost:8080/api/map/insert?apiPath=/test&apiMethod=GET&apiQueryParams=param1=value1;param2=value2&apiHeaders=content-type=application/json" -d '{"key": "value"}'
 ```
+
+## Retrieve Mocked Data
+
+#### Endpoint: /**
+#### Method: 
+Any valid HTTP method (GET, POST, PUT, DELETE, etc.)
+#### Description: 
+Retrieves the mocked data for the given API path and method from the in-memory map or JSON file.
+
+```curl
+Example usage -
+curl -X GET "http://localhost:8080/test?param1=value1&param2=value2"
+
+```
