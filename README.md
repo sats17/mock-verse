@@ -1,4 +1,10 @@
-# API Usage Documentation
+# Mock Verse 
+Mock Verse is a server that provides mock behavior for APIs based on the data you provide. This document will guide you through the process of running the server and using it.
+
+## Prerequisites
+Ensure that you have Java and Maven installed on your machine.
+
+## API Usage Documentation
 
 This Spring Boot application provides a MockServer with various API endpoints to store and retrieve mock API responses. The following is a list of available API endpoints with their descriptions and usage:
 
