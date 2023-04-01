@@ -4,11 +4,23 @@ Mock Verse is a server that provides mock behavior for APIs based on the data yo
 ## Prerequisites
 Ensure that you have Java and Maven installed on your machine.
 
+## How to start the server
+* Clone the Mock Verse repository.
+* Open a terminal or command prompt and navigate to the project's root directory.
+* Run the provided shell script by executing the command: sh run_me.sh.
+
+## Using the server
+Once the server is running, you can interact with it through its API endpoints. You can insert data into the server, which will then provide mock behavior for the specified API paths and methods.
+
+For detailed information about the API endpoints, their parameters, and usage, refer to the API documentation provided below
+
+With the server running, you can use tools like curl or Postman to send requests to the Mock Verse server and receive the expected mock responses based on the data you've provided.
+
 ## API Usage Documentation
 
 This Spring Boot application provides a MockServer with various API endpoints to store and retrieve mock API responses. The following is a list of available API endpoints with their descriptions and usage:
 
-## 1. Insert Data to Map
+### 1. Insert Data to Map
 
 #### Endpoint: /api/map/insert
 #### Method: POST
@@ -30,7 +42,7 @@ Example usage:
 - curl -X POST "http://localhost:8080/api/map/insert?apiPath=/test&apiMethod=GET&apiQueryParams=param1=value1;param2=value2&apiHeaders=content-type=application/json" -d '{"key": "value"}'
 ```
 
-## 2. Insert Data to File
+### 2. Insert Data to File
 
 #### Endpoint: /api/map/insert
 #### Method: POST
@@ -52,7 +64,7 @@ Example usage:
 - curl -X POST "http://localhost:8080/api/map/insert?apiPath=/test&apiMethod=GET&apiQueryParams=param1=value1;param2=value2&apiHeaders=content-type=application/json" -d '{"key": "value"}'
 ```
 
-## Retrieve Mocked Data
+### Retrieve Mocked Data
 
 #### Endpoint: /**
 #### Method: 
