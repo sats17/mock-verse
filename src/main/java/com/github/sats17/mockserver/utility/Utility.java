@@ -1,6 +1,9 @@
 package com.github.sats17.mockserver.utility;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -9,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
+import com.github.sats17.mockserver.controller.MockController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
@@ -18,6 +24,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 public class Utility {
+
+	private static final Logger logger = LoggerFactory.getLogger(Utility.class);
 
 	private static List<String> apiMethods = Arrays.asList("GET", "POST", "PUT", "PATCH", "OPTIONS", "DELETE", "HEAD");
 
@@ -40,6 +48,7 @@ public class Utility {
 		return false;
 	}
 
+	@Deprecated
 	public static Integer generateHashCode(String... args) {
 		// Skip any string with length 0 or null
 		args = Arrays.stream(args).filter(s -> s != null && s.length() > 0).map(s -> s.toLowerCase())
@@ -58,7 +67,7 @@ public class Utility {
 
 	public static String generateQueryParamString(Map<String, String[]> servletQueryParams) {
 		if (servletQueryParams.isEmpty()) {
-			System.out.println("No query params passed, hence structured query params will be empty.");
+			logger.debug("Did not received any query params, hence will generate hash key with empty query params");
 			return "";
 		}
 		Map<String, String> sortHelperMap = new HashMap<>();
@@ -95,7 +104,6 @@ public class Utility {
 		}
 
 		if (queryParams.isEmpty()) {
-			System.out.println("No query params passed, hence structured query params will be empty.");
 			return "";
 		}
 
@@ -130,9 +138,7 @@ public class Utility {
 			if (i < sortedKeys.size() - 1) {
 				queryParamBuilder.append("&");
 			}
-			System.out.println(queryParamBuilder.toString());
 		});
-		System.out.println("Key generated to store query params => " + queryParamBuilder.toString());
 		return queryParamBuilder.toString();
 
 	}
@@ -189,4 +195,32 @@ public class Utility {
 			return MediaType.APPLICATION_JSON;
 		}
 	}
+
+	public static String generateMockStorageKey(String... args) {
+		args = Arrays.stream(args).filter(s -> s != null && !s.isEmpty()).map(String::toLowerCase)
+				.toArray(String[]::new);
+
+		if (args.length == 0) {
+			System.out.println("Values passed to generate hash are either empty or null");
+			throw new IllegalArgumentException("Internal server error.");
+		}
+
+		return String.join("_", args);
+	}
+
+	public static String generateHashCodeFromString(String data) throws NoSuchAlgorithmException {
+		MessageDigest md = MessageDigest.getInstance("SHA-256");
+		byte[] bytes = data.getBytes(StandardCharsets.UTF_8);
+		byte[] hashedBytes =  md.digest(bytes);
+		StringBuilder hexString = new StringBuilder();
+		for (byte b : hashedBytes) {
+			String hex = Integer.toHexString(0xff & b);
+			if (hex.length() == 1) {
+				hexString.append('0');
+			}
+			hexString.append(hex);
+		}
+		return hexString.toString();
+	}
+
 }
