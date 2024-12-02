@@ -7,39 +7,35 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
+import com.github.sats17.mockserver.model.InputDTO;
+import com.github.sats17.mockserver.service.StorageService;
+import jakarta.servlet.http.HttpServletRequest;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.github.sats17.mockserver.model.Input;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.Base64Utils;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.sats17.mockserver.model.Storage;
+import com.github.sats17.mockserver.model.mem.Storage;
 import com.github.sats17.mockserver.utility.Utility;
 
 @RestController
 @RequestMapping("")
 public class MockController {
+
+    private static final Logger logger = LoggerFactory.getLogger(MockController.class);
 
     @Autowired
     ResourceLoader resourceLoader;
@@ -47,18 +43,16 @@ public class MockController {
     @Autowired
     ObjectMapper objectMapper;
 
+    @Autowired
+    StorageService storageService;
+
     public static Map<String, Storage> map = new HashMap<>();
 
-
-    public final static String dbName = "mockdb";
-    public final static String collectionName = "mockcollection";
-
-
-    @PostMapping(path = "/api/map/insert")
-    public ResponseEntity<Object> insertDataToMap(@RequestParam String apiPath, @RequestParam String apiMethod,
+    @PostMapping(path = "/api/mem/insert")
+    public ResponseEntity<Object> insertDataToInMemoryStorage(@RequestParam String apiPath, @RequestParam String apiMethod,
                                                   @RequestParam Optional<String> apiQueryParams, @RequestParam Optional<String> apiHeaders,
-
                                                   @RequestBody Input body) throws IOException {
+        logger.debug("Request received to insert mock behaviour in mem storage");
         if (!Utility.isValidPath(apiPath)) {
             return ResponseEntity.ok("Query parameter apiPath should starts with / as it represent API Path.");
         }
@@ -74,139 +68,110 @@ public class MockController {
 
         String hashKey;
         if (body.getRequest() != null) {
-            objectMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+            logger.debug("Received mock behaviour with request body, mock verse will try to hash body request");
             String normalizedRequestBody = objectMapper.writeValueAsString(body.getRequest());
-            System.out.println(normalizedRequestBody);
-			String hashedRequestBody;
+            logger.debug("Normalized Request JSON Body: {}", normalizedRequestBody);
+            String hashedRequestBody;
             try {
-
                 hashedRequestBody = Utility.generateHashCodeFromString(normalizedRequestBody);
             } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
+                logger.debug("Error occurred while generating hash from request body: {}", e.getMessage());
                 return new ResponseEntity<Object>("Unable to generate hash from request body.", responseHeaders, 500);
             }
-
             hashKey = Utility.generateMockStorageKey(apiMethod, apiPath, structuredQueryParams, hashedRequestBody);
         } else {
             hashKey = Utility.generateMockStorageKey(apiMethod, apiPath, structuredQueryParams);
         }
 
 
-        Storage storage = new Storage(apiPath, structuredQueryParams, contentType.toString(), body.getResponse());
-        System.out.println("Storage -> " + storage);
+        Storage storage = new Storage(apiPath, structuredQueryParams, contentType.toString(), body.getRequest(), body.getResponse());
+        logger.debug("Hash Key: {}, Storage: {}", hashKey, storage);
         map.put(hashKey, storage);
-		System.out.println(map);
-
-
         return new ResponseEntity<Object>("Mock added successfully", responseHeaders, 200);
     }
 
-    @PostMapping("/api/file/insert")
-    public Object insertDataToFile(@RequestParam String apiPath, @RequestParam String apiMethod,
-                                   @RequestParam Optional<String> apiQueryParams, @RequestParam Optional<String> apiHeaders, @RequestBody String body) {
+    @PostMapping("/api/disk/insert")
+    public ResponseEntity<Object> insertDataToDisk(@RequestParam String apiPath, @RequestParam String apiMethod,
+                                   @RequestParam Optional<String> apiQueryParams, @RequestParam Optional<String> apiHeaders,
+                                   @RequestBody Input body) throws JsonProcessingException {
         if (!Utility.isValidPath(apiPath)) {
             return ResponseEntity.ok("Query parameter apiPath should starts with / as it represent API Path.");
         }
         if (!Utility.isValidAPIMethod(apiMethod)) {
             return ResponseEntity.ok("Query parameter apiMethod is not valid.");
         }
-        String structuredQueryParams = Utility.generateQueryParamString(apiQueryParams.orElse(""));
-        HashMap<String, String> headers = Utility.generateAPIHeaders(apiHeaders.orElse(""));
-        MediaType contentType = Utility.resolveContentType(headers.get("content-type"));
 
-        Integer hashCode = Utility.generateHashCode(apiMethod, apiPath, structuredQueryParams);
+        InputDTO inputDTO = new InputDTO(apiPath, apiMethod, apiQueryParams.orElse(""), apiHeaders.orElse(""), body);
+        boolean result = storageService.saveStorageToDB(inputDTO);
 
-        Storage storage = new Storage(apiPath, structuredQueryParams, contentType.toString(), body);
-        String storageJson;
-        try {
-            storageJson = objectMapper.writeValueAsString(storage);
-            System.out.println("Storage -> " + storageJson);
-        } catch (JsonProcessingException e1) {
-            System.out.println("Error occured while converting Storage Class to JSON String.\n");
-            e1.printStackTrace();
-            return "Something went wrong, please check logs";
+        if(result) {
+            return ResponseEntity.ok("Mock created");
         }
-        ObjectMapper objectMapper = new ObjectMapper();
 
-        try {
-            File directory = new File("mock-responses");
-            if (!directory.exists()) {
-                directory.mkdir();
-            }
-            objectMapper.writeValue(new File("mock-responses/" + hashCode.toString() + ".json"), storage);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "Something went wrong while writing response to file";
-        }
-        return "Inserted data to file";
+        return ResponseEntity.ok("Mock creation failed");
     }
 
     @RequestMapping(value = "/**", produces = "application/json")
-    public Object getURLValue(HttpServletRequest request) {
+    public Object getMockResponse(HttpServletRequest request) {
         String requestPath = request.getRequestURI();
-        System.out.println("Request Path " + requestPath);
-
         String structuredQueryParams = Utility.generateQueryParamString(request.getParameterMap());
         String requestMethod = request.getMethod();
-        System.out.println("Path is " + requestPath);
-        System.out.println("Method is " + requestMethod);
 
         String hashedRequestBody = null;
         try {
             String body = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
-            if(body != null && !body.isEmpty()) {
-                objectMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+            if (!body.isEmpty()) {
+                logger.debug("Request received with request body, mock verse will try to create hash from request body.");
                 Object obj = objectMapper.readValue(body, Object.class);
                 String normalizedRequestBody = objectMapper.writeValueAsString(obj);
-                System.out.println(normalizedRequestBody);
+                logger.debug("Normalized Request JSON Body: {}", normalizedRequestBody);
 
                 try {
-
                     hashedRequestBody = Utility.generateHashCodeFromString(normalizedRequestBody);
                 } catch (NoSuchAlgorithmException e) {
-                    e.printStackTrace();
+                    logger.debug("Error occurred while generating hash from request body: {}", e.getMessage());
                     return ResponseEntity.internalServerError();
                 }
             }
         } catch (IOException e) {
+            logger.debug("Error occurred while reading request body from servlet request: {}", e.getMessage());
             throw new RuntimeException(e);
         }
 
-		String key;
-
-		if(hashedRequestBody != null) {
+        String key;
+        if (hashedRequestBody != null) {
             key = Utility.generateMockStorageKey(requestMethod, requestPath, structuredQueryParams, hashedRequestBody);
         } else {
             key = Utility.generateMockStorageKey(requestMethod, requestPath, structuredQueryParams);
         }
 
+        logger.debug("Hash Key: {}", key);
+
 
         Storage result = fetchDataFromMap(key);
         if (result != null) {
-            System.out.println(result);
-            System.out.println("Data returned from Map");
+            logger.debug("Mock data found for key {} in HashMap", key);
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.add("content-type", result.getContentType());
-            System.out.println(result.getBody());
-            return new ResponseEntity<Object>(result.getBody(), responseHeaders, 200);
+            return new ResponseEntity<Object>(result.getResponseBody(), responseHeaders, 200);
+        } else {
+            logger.debug("Data not found for key {} in Hashmap", key);
         }
 
-        result = fetchDataFromFile(key);
-        if (result != null) {
-            System.out.println(result);
-            System.out.println("Data returned from File");
+        com.github.sats17.mockserver.model.h2.Storage storage = storageService.getStorageByKey(key);
+        if (storage != null) {
+            logger.debug("Mock data found for key {} in disk", key);
             HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.add("content-type", result.getContentType());
-            return new ResponseEntity<Object>(result.getBody(), responseHeaders, 200);
+            responseHeaders.add("content-type", storage.getContentType());
+            return new ResponseEntity<Object>(storage.getResponseBody(), responseHeaders, 200);
         }
-        System.out.println("Data for key " + key + " not present anywhere inside mockserver");
         return "Data for requestPath " + requestPath + " and requestMethod " + requestMethod
                 + " not present anywhere inside mockserver";
 
     }
 
     private Storage fetchDataFromMap(String key) {
-        System.out.println(map);
+        logger.debug("Fetching key {} from hashmap", key);
         return map.get(key);
     }
 

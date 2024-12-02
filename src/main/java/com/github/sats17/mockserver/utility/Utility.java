@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
+import com.github.sats17.mockserver.controller.MockController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
@@ -21,6 +24,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 public class Utility {
+
+	private static final Logger logger = LoggerFactory.getLogger(Utility.class);
 
 	private static List<String> apiMethods = Arrays.asList("GET", "POST", "PUT", "PATCH", "OPTIONS", "DELETE", "HEAD");
 
@@ -62,7 +67,7 @@ public class Utility {
 
 	public static String generateQueryParamString(Map<String, String[]> servletQueryParams) {
 		if (servletQueryParams.isEmpty()) {
-			System.out.println("No query params passed, hence structured query params will be empty.");
+			logger.debug("Did not received any query params, hence will generate hash key with empty query params");
 			return "";
 		}
 		Map<String, String> sortHelperMap = new HashMap<>();
@@ -99,7 +104,6 @@ public class Utility {
 		}
 
 		if (queryParams.isEmpty()) {
-			System.out.println("No query params passed, hence structured query params will be empty.");
 			return "";
 		}
 
@@ -134,9 +138,7 @@ public class Utility {
 			if (i < sortedKeys.size() - 1) {
 				queryParamBuilder.append("&");
 			}
-			System.out.println(queryParamBuilder.toString());
 		});
-		System.out.println("Key generated to store query params => " + queryParamBuilder.toString());
 		return queryParamBuilder.toString();
 
 	}
